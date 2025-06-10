@@ -17,7 +17,6 @@ export const Settings = () => {
 						min={1}
 						defaultValue={1}
 						className="form-control"
-						aria-label="Пример размера поля ввода"
 						aria-describedby="inputGroup-sizing-sm"
 					/>
 				</div>
@@ -33,8 +32,7 @@ export const Settings = () => {
 						}}
 						type="color"
 						className="form-control"
-						style={{width: "100px", height: "31px"}}
-						aria-label="Пример размера поля ввода"
+						style={{ width: "100px", height: "31px" }}
 						aria-describedby="inputGroup-sizing-sm"
 					/>
 				</div>

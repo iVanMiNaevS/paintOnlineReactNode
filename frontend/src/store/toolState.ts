@@ -1,16 +1,12 @@
 import {makeAutoObservable} from "mobx";
-import Brush from "../tools/brush";
-import Circle from "../tools/circle";
-import Rect from "../tools/rect";
-import Eraser from "../tools/eraser";
-import Line from "../tools/line";
 
-type typeTool = Brush | Circle | Rect | Eraser | Line;
-type typeToolName = "brush" | "circle" | "line" | "eraser" | "rect";
+import { typeTool, typeToolName } from "../types";
+
+
 class ToolState {
 	tool: typeTool | null = null;
 	toolName: typeToolName | null = null;
-	colorState = "black";
+	colorState:string | CanvasGradient | CanvasPattern = "black";
 	widthState = 1;
 	fillState = "";
 	constructor() {
@@ -35,7 +31,7 @@ class ToolState {
 			this.tool.fillColor = color;
 		}
 	}
-	setStrokeColor(color: string) {
+	setStrokeColor(color: string | CanvasGradient | CanvasPattern) {
 		this.colorState = color;
 		if (this.tool) {
 			this.tool.strokeColor = color;

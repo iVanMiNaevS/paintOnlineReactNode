@@ -1,10 +1,10 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, { useEffect, useRef, useState } from "react";
 import canvasState from "../store/canvasState";
-import {observer} from "mobx-react-lite";
+import { observer } from "mobx-react-lite";
 import toolState from "../store/toolState";
 import Brush from "../tools/brush";
-import {IFigure, IWsData} from "../types";
-import {useParams} from "react-router-dom";
+import { IFigure, IWsData } from "../types";
+import { useParams } from "react-router-dom";
 import authState from "../store/authState";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Rect from "../tools/rect";
@@ -19,13 +19,19 @@ export const Canvas = observer(() => {
 	const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
 	useEffect(() => {
+		// создание канваса
 		const canvas = canvasRef.current;
+
 		if (!canvas) return;
 		canvasState.setCanvas(canvas);
 
 		const ctx = canvas.getContext("2d");
 		if (!ctx) return;
 
+		ctx.lineCap = "round";
+		ctx.lineJoin = "round";
+
+		// получение изображения на канвасе
 		axios
 			.get(`http://localhost:8080/image?id=${params.id}`)
 			.then((response) => {
@@ -37,13 +43,16 @@ export const Canvas = observer(() => {
 				};
 			})
 			.catch((err) => console.log(err));
-		ctx.lineCap = "round";
-		ctx.lineJoin = "round";
 
+		// работа с веб сокетом
 		const ws = new WebSocket("http://localhost:8080/");
+
+		// распределения по глобальным состояниям
 		if (!params.id) return;
 		authState.setSessionId(params.id);
 		authState.setSocket(ws);
+
+		// создание инструмента
 		toolState.setTool(new Brush(canvas, ws, params.id), "brush");
 
 		ws.onopen = () => {
@@ -51,7 +60,9 @@ export const Canvas = observer(() => {
 			if (!params.id) return;
 			const name: string = localStorage.getItem("name") || "";
 			if (!authState.username && name === "") {
-				alert("Нет имени пользователя, перезайдите в комнату или создайте новую");
+				alert(
+					"Нет имени пользователя, перезайдите в комнату или создайте новую"
+				);
 			} else {
 				const data: IWsData = {
 					type: "connect",

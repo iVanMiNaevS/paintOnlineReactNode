@@ -1,6 +1,6 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import toolState from "../store/toolState";
-import {observer} from "mobx-react-lite";
+import { observer } from "mobx-react-lite";
 import Brush from "../tools/brush";
 import canvasState from "../store/canvasState";
 import Circle from "../tools/circle";
@@ -8,10 +8,34 @@ import Rect from "../tools/rect";
 import Eraser from "../tools/eraser";
 import Line from "../tools/line";
 import authState from "../store/authState";
+import { typeTool, typeToolName } from "../types";
+import brushIcon from "../img/pngwing.com.png";
+import eraserIcon from "../img/pngwing.com (1).png";
+export type typeToolConstructor = new (
+	canvas: HTMLCanvasElement,
+	socket: WebSocket,
+	sessionId: string
+) => Brush | Circle | Rect | Eraser | Line;
 
 export const Toolbar = observer(() => {
 	const activeTool = toolState.toolName;
-
+	const [tools, setTools] = useState<
+		{
+			name: typeToolName;
+			class: typeToolConstructor;
+			imgSrc: string | null;
+		}[]
+	>([
+		{
+			name: "brush",
+			class: Brush,
+			imgSrc: brushIcon,
+		},
+		{ name: "circle", class: Circle, imgSrc: null },
+		{ name: "rect", class: Rect, imgSrc: null },
+		{ name: "eraser", class: Eraser, imgSrc: eraserIcon },
+		{ name: "line", class: Line, imgSrc: null },
+	]);
 	function download() {
 		if (canvasState.canvas) {
 			const dataUrl = canvasState.canvas.toDataURL();
@@ -37,81 +61,37 @@ export const Toolbar = observer(() => {
 				/>
 				PAINT
 			</div>
-			<button
-				onClick={() => {
-					if (canvasState.canvas) {
-						console.log("c");
-						if (authState.socket && authState.sessionId) {
-							toolState.setTool(
-								new Brush(canvasState.canvas, authState.socket, authState.sessionId),
-								"brush"
-							);
-						}
-					}
-				}}
-				className={`btn btn-light ${activeTool === "brush" && "my-active"}`}
-			>
-				<img src={require("../img/pngwing.com.png")} alt="" width={40} />
-			</button>
-			<button
-				onClick={() => {
-					if (canvasState.canvas) {
-						console.log(authState.socket);
-						if (authState.socket && authState.sessionId) {
-							toolState.setTool(
-								new Circle(canvasState.canvas, authState.socket, authState.sessionId),
-								"circle"
-							);
-						}
-					}
-				}}
-				className={`btn btn-light ${activeTool === "circle" && "my-active"}`}
-			>
-				<div className="circle"></div>
-			</button>
-			<button
-				onClick={() => {
-					if (canvasState.canvas) {
-						console.log("c");
-						if (authState.socket && authState.sessionId)
-							toolState.setTool(
-								new Rect(canvasState.canvas, authState.socket, authState.sessionId),
-								"rect"
-							);
-					}
-				}}
-				className={`btn btn-light ${activeTool === "rect" && "my-active"}`}
-			>
-				<div className="rectangle"></div>
-			</button>
-			<button
-				onClick={() => {
-					if (canvasState.canvas) {
-						if (authState.socket && authState.sessionId)
-							toolState.setTool(
-								new Eraser(canvasState.canvas, authState.socket, authState.sessionId),
-								"eraser"
-							);
-					}
-				}}
-				className={`btn btn-light ${activeTool === "eraser" && "my-active"}`}
-			>
-				<img src={require("../img/pngwing.com (1).png")} alt="" width={40} />
-			</button>
-			<button
-				onClick={() => {
-					if (canvasState.canvas) {
-						if (authState.socket && authState.sessionId)
-							toolState.setTool(
-								new Line(canvasState.canvas, authState.socket, authState.sessionId),
-								"line"
-							);
-					}
-				}}
-				className={`btn btn-light ${activeTool === "line" && "my-active"}`}
-			>
-				<div className="line"></div>
-			</button>
+			{tools.map((tool) => {
+				return (
+					<button
+						onClick={() => {
+							if (canvasState.canvas) {
+								console.log("c");
+								if (authState.socket && authState.sessionId) {
+									toolState.setTool(
+										new tool.class(
+											canvasState.canvas,
+											authState.socket,
+											authState.sessionId
+										),
+										tool.name
+									);
+								}
+							}
+						}}
+						className={`btn btn-light ${
+							activeTool === tool.name && "my-active"
+						}`}
+					>
+						{tool.imgSrc !== null ? (
+							<img src={tool.imgSrc} alt="" width={40} />
+						) : (
+							<div className={tool.name}></div>
+						)}
+					</button>
+				);
+			})}
+
 			<button className="btn btn-light color">
 				<input
 					type="color"
