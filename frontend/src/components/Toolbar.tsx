@@ -7,9 +7,24 @@ import Circle from "../tools/circle";
 import Rect from "../tools/rect";
 import Eraser from "../tools/eraser";
 import Line from "../tools/line";
+import authState from "../store/authState";
 
 export const Toolbar = observer(() => {
 	const activeTool = toolState.toolName;
+
+	function download() {
+		if (canvasState.canvas) {
+			const dataUrl = canvasState.canvas.toDataURL();
+			const a = document.createElement("a");
+
+			a.href = dataUrl;
+			a.download = authState.sessionId + ".png";
+
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+		}
+	}
 
 	return (
 		<nav className="navbar bg-primary p-3 px-5 column-gap-3 align-items-stretch">
@@ -25,7 +40,13 @@ export const Toolbar = observer(() => {
 			<button
 				onClick={() => {
 					if (canvasState.canvas) {
-						toolState.setTool(new Brush(canvasState.canvas), "brush");
+						console.log("c");
+						if (authState.socket && authState.sessionId) {
+							toolState.setTool(
+								new Brush(canvasState.canvas, authState.socket, authState.sessionId),
+								"brush"
+							);
+						}
 					}
 				}}
 				className={`btn btn-light ${activeTool === "brush" && "my-active"}`}
@@ -35,7 +56,13 @@ export const Toolbar = observer(() => {
 			<button
 				onClick={() => {
 					if (canvasState.canvas) {
-						toolState.setTool(new Circle(canvasState.canvas), "circle");
+						console.log(authState.socket);
+						if (authState.socket && authState.sessionId) {
+							toolState.setTool(
+								new Circle(canvasState.canvas, authState.socket, authState.sessionId),
+								"circle"
+							);
+						}
 					}
 				}}
 				className={`btn btn-light ${activeTool === "circle" && "my-active"}`}
@@ -45,7 +72,12 @@ export const Toolbar = observer(() => {
 			<button
 				onClick={() => {
 					if (canvasState.canvas) {
-						toolState.setTool(new Rect(canvasState.canvas), "rect");
+						console.log("c");
+						if (authState.socket && authState.sessionId)
+							toolState.setTool(
+								new Rect(canvasState.canvas, authState.socket, authState.sessionId),
+								"rect"
+							);
 					}
 				}}
 				className={`btn btn-light ${activeTool === "rect" && "my-active"}`}
@@ -55,7 +87,11 @@ export const Toolbar = observer(() => {
 			<button
 				onClick={() => {
 					if (canvasState.canvas) {
-						toolState.setTool(new Eraser(canvasState.canvas), "eraser");
+						if (authState.socket && authState.sessionId)
+							toolState.setTool(
+								new Eraser(canvasState.canvas, authState.socket, authState.sessionId),
+								"eraser"
+							);
 					}
 				}}
 				className={`btn btn-light ${activeTool === "eraser" && "my-active"}`}
@@ -65,7 +101,11 @@ export const Toolbar = observer(() => {
 			<button
 				onClick={() => {
 					if (canvasState.canvas) {
-						toolState.setTool(new Line(canvasState.canvas), "line");
+						if (authState.socket && authState.sessionId)
+							toolState.setTool(
+								new Line(canvasState.canvas, authState.socket, authState.sessionId),
+								"line"
+							);
 					}
 				}}
 				className={`btn btn-light ${activeTool === "line" && "my-active"}`}
@@ -96,7 +136,7 @@ export const Toolbar = observer(() => {
 			>
 				<img src={require("../img/pngwing.com (3).png")} alt="" width={40} />
 			</button>
-			<button className="btn btn-light">
+			<button className="btn btn-light" onClick={download}>
 				<img src={require("../img/pngwing.com (4).png")} alt="" width={40} />
 			</button>
 		</nav>

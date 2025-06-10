@@ -1,3 +1,5 @@
+import authState from "../store/authState";
+import {ICircleFigure, IWsData} from "../types";
 import Tool from "./tool";
 
 export default class Circle extends Tool {
@@ -5,8 +7,8 @@ export default class Circle extends Tool {
 	startX: number = 0;
 	startY: number = 0;
 	saved: string = "";
-	constructor(canvas: HTMLCanvasElement) {
-		super(canvas);
+	constructor(canvas: HTMLCanvasElement, socket: WebSocket, sessionId: string) {
+		super(canvas, socket, sessionId);
 		this.listen();
 	}
 	listen() {
@@ -19,6 +21,34 @@ export default class Circle extends Tool {
 
 	mouseUpHandler(e: MouseEvent) {
 		this.isDraw = false;
+		const rect = this.canvas?.getBoundingClientRect();
+		const currentX = e.clientX - rect.left;
+		const radius = currentX - this.startX;
+		if (this.ctx) {
+			const data: IWsData = {
+				type: "figure",
+				id: this.sessionId,
+				figure: {
+					type: "circle",
+					x: this.startX,
+					y: this.startY,
+					radius: Math.abs(radius),
+					color: this.ctx.strokeStyle,
+					fillColor: this.ctx.fillStyle,
+					lineWidth: this.ctx.lineWidth,
+				},
+			};
+			authState.socket?.send(JSON.stringify(data));
+		}
+		this.socket?.send(
+			JSON.stringify({
+				type: "figure",
+				id: this.sessionId,
+				figure: {
+					type: "finish",
+				},
+			})
+		);
 	}
 	mouseDownHandler(e: MouseEvent) {
 		if (this.canvas) {
@@ -35,7 +65,6 @@ export default class Circle extends Tool {
 			if (this.canvas) {
 				const rect = this.canvas?.getBoundingClientRect();
 				const currentX = e.clientX - rect.left;
-				const currentY = e.clientY - rect.top;
 				const radius = currentX - this.startX;
 				this.draw(this.startX, this.startY, Math.abs(radius));
 			}
@@ -54,5 +83,18 @@ export default class Circle extends Tool {
 			this.ctx?.fill();
 			this.ctx?.stroke();
 		};
+	}
+	static staticDraw(ctx: CanvasRenderingContext2D, figure: ICircleFigure) {
+		ctx.fillStyle = figure.fillColor;
+		ctx.strokeStyle = figure.color;
+		ctx.lineWidth = figure.lineWidth;
+		if (figure.radius) {
+			ctx.beginPath();
+			ctx.arc(figure.x, figure.y, figure.radius, 0, 2 * Math.PI);
+			ctx.fill();
+			ctx.stroke();
+		} else {
+			console.log("radius is empty");
+		}
 	}
 }

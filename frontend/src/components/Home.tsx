@@ -15,6 +15,7 @@ export const Home: React.FC = () => {
 		}
 		const roomId = `f${(+new Date()).toString(16)}`;
 		authState.setUsername(username);
+		localStorage.setItem("name", username);
 		authState.setSessionId(roomId);
 		navigate(`/${roomId}`);
 	};

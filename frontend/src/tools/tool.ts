@@ -1,9 +1,13 @@
 export default class Tool {
 	canvas: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D | null;
-	constructor(canvas: HTMLCanvasElement) {
+	socket: WebSocket | null = null;
+	sessionId: string = "";
+	constructor(canvas: HTMLCanvasElement, socket: WebSocket, sessionId: string) {
 		this.canvas = canvas;
 		this.ctx = canvas.getContext("2d");
+		this.socket = socket;
+		this.sessionId = sessionId;
 		this.destroyEvents();
 	}
 

@@ -1,12 +1,16 @@
+import authState from "../store/authState";
+import {IRectFigure, IWsData} from "../types";
 import Tool from "./tool";
 
 export default class Rect extends Tool {
 	isDraw: boolean = false;
 	startX: number = 0;
 	startY: number = 0;
+	w: number = 0;
+	h: number = 0;
 	saved: string = "";
-	constructor(canvas: HTMLCanvasElement) {
-		super(canvas);
+	constructor(canvas: HTMLCanvasElement, socket: WebSocket, sessionId: string) {
+		super(canvas, socket, sessionId);
 		this.listen();
 	}
 	listen() {
@@ -19,6 +23,32 @@ export default class Rect extends Tool {
 
 	mouseUpHandler(e: MouseEvent) {
 		this.isDraw = false;
+		if (this.ctx) {
+			const data: IWsData = {
+				type: "figure",
+				id: this.sessionId,
+				figure: {
+					type: "rect",
+					x: this.startX,
+					y: this.startY,
+					w: this.w,
+					h: this.h,
+					color: this.ctx.strokeStyle,
+					fillColor: this.ctx.fillStyle,
+					lineWidth: this.ctx.lineWidth,
+				},
+			};
+			authState.socket?.send(JSON.stringify(data));
+		}
+		this.socket?.send(
+			JSON.stringify({
+				type: "figure",
+				id: this.sessionId,
+				figure: {
+					type: "finish",
+				},
+			})
+		);
 	}
 	mouseDownHandler(e: MouseEvent) {
 		if (this.canvas) {
@@ -36,9 +66,9 @@ export default class Rect extends Tool {
 				const rect = this.canvas?.getBoundingClientRect();
 				const currentX = e.clientX - rect.left;
 				const currentY = e.clientY - rect.top;
-				const w = currentX - this.startX;
-				const h = currentY - this.startY;
-				this.draw(this.startX, this.startY, w, h);
+				this.w = currentX - this.startX;
+				this.h = currentY - this.startY;
+				this.draw(this.startX, this.startY, this.w, this.h);
 			}
 		}
 	}
@@ -55,5 +85,14 @@ export default class Rect extends Tool {
 			this.ctx?.fill();
 			this.ctx?.stroke();
 		};
+	}
+	static staticDraw(ctx: CanvasRenderingContext2D, figure: IRectFigure) {
+		ctx.strokeStyle = figure.color;
+		ctx.lineWidth = figure.lineWidth;
+		ctx.fillStyle = figure.fillColor;
+		ctx.beginPath();
+		ctx.rect(figure.x, figure.y, figure.w, figure.h);
+		ctx.fill();
+		ctx.stroke();
 	}
 }

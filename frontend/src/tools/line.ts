@@ -1,3 +1,5 @@
+import authState from "../store/authState";
+import {ILineFigure, IWsData} from "../types";
 import Tool from "./tool";
 
 export default class Line extends Tool {
@@ -5,8 +7,8 @@ export default class Line extends Tool {
 	startX: number = 0;
 	startY: number = 0;
 	saved: string = "";
-	constructor(canvas: HTMLCanvasElement) {
-		super(canvas);
+	constructor(canvas: HTMLCanvasElement, socket: WebSocket, sessionId: string) {
+		super(canvas, socket, sessionId);
 		this.listen();
 	}
 	listen() {
@@ -19,6 +21,34 @@ export default class Line extends Tool {
 
 	mouseUpHandler(e: MouseEvent) {
 		this.isDraw = false;
+		const rect = this.canvas?.getBoundingClientRect();
+		const currentX = e.clientX - rect.left;
+		const currentY = e.clientY - rect.top;
+		if (this.ctx) {
+			const data: IWsData = {
+				type: "figure",
+				id: this.sessionId,
+				figure: {
+					type: "line",
+					x: currentX,
+					y: currentY,
+					startX: this.startX,
+					startY: this.startY,
+					color: this.ctx.strokeStyle,
+					lineWidth: this.ctx.lineWidth,
+				},
+			};
+			authState.socket?.send(JSON.stringify(data));
+		}
+		this.socket?.send(
+			JSON.stringify({
+				type: "figure",
+				id: this.sessionId,
+				figure: {
+					type: "finish",
+				},
+			})
+		);
 	}
 	mouseDownHandler(e: MouseEvent) {
 		if (this.canvas) {
@@ -27,6 +57,8 @@ export default class Line extends Tool {
 			const rect = this.canvas.getBoundingClientRect();
 			this.startX = e.clientX - rect.left;
 			this.startY = e.clientY - rect.top;
+			this.ctx?.beginPath();
+			this.ctx?.moveTo(this.startX, this.startY);
 			this.saved = this.canvas.toDataURL();
 		}
 	}
@@ -54,5 +86,18 @@ export default class Line extends Tool {
 			this.ctx?.fill();
 			this.ctx?.stroke();
 		};
+	}
+	static staticDraw(ctx: CanvasRenderingContext2D, figure: ILineFigure) {
+		ctx.strokeStyle = figure.color;
+		ctx.lineWidth = figure.lineWidth;
+		if (figure.startX && figure.startY) {
+			ctx.beginPath();
+			ctx.moveTo(figure.startX, figure.startY);
+			ctx.lineTo(figure.x, figure.y);
+			ctx.fill();
+			ctx.stroke();
+		} else {
+			console.log("startX or startY is empty");
+		}
 	}
 }
