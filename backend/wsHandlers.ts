@@ -14,3 +14,18 @@ export function broadcastHandler(data: IWsData, aWss: Server) {
 		}
 	});
 }
+export function handleUndoRedo(data: IWsData, aWss: Server, ws: ICustomWebSocket) {
+	if (!data.sessionId || !data.state) return;
+	
+	aWss.clients.forEach((client) => {
+		const customClient = client as unknown as ICustomWebSocket;
+
+			if (customClient.id === data.sessionId && customClient !== ws) {
+					client.send(JSON.stringify({
+							type: "undoRedo",
+							state: data.state,
+							action: data.action
+					}));
+			}
+	});
+}

@@ -103,7 +103,8 @@ export const Toolbar = observer(() => {
 			<button
 				className="btn btn-light ms-auto"
 				onClick={() => {
-					canvasState.undo();
+					if (authState.socket && authState.sessionId)
+						canvasState.syncUndo(authState.socket, authState.sessionId);
 				}}
 			>
 				<img src={require("../img/pngwing.com (2).png")} alt="" width={40} />
@@ -111,7 +112,8 @@ export const Toolbar = observer(() => {
 			<button
 				className="btn btn-light"
 				onClick={() => {
-					canvasState.redo();
+					if (authState.socket && authState.sessionId)
+						canvasState.syncRedo(authState.socket, authState.sessionId);
 				}}
 			>
 				<img src={require("../img/pngwing.com (3).png")} alt="" width={40} />

@@ -1,7 +1,7 @@
 import express from "express";
 import expressWsLib from "express-ws";
 import {ICustomWebSocket, IWsData} from "./types";
-import {broadcastHandler, connectHandler} from "./wsHandlers";
+import {broadcastHandler, connectHandler, handleUndoRedo} from "./wsHandlers";
 import fs from "fs";
 import path from "path";
 import cors from "cors";
@@ -25,9 +25,13 @@ wsApp.ws("/", (ws, req) => {
 			case "figure":
 				broadcastHandler(data, aWss);
 				break;
+				case "undoRedo":
+                handleUndoRedo(data, aWss,customWs);
+                break;
 		}
 	});
 });
+
 
 (wsApp as express.Application).post("/image", (req: express.Request, res: express.Response) => {
 	try {

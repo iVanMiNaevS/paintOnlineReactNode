@@ -43,6 +43,7 @@ class ToolState {
 			this.tool.lineWidth = width;
 		}
 	}
+	
 }
 
 export default new ToolState();

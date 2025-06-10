@@ -84,6 +84,41 @@ export const Canvas = observer(() => {
 				case "figure":
 					if (data.figure) drawHandler(ctx, data.figure);
 					break;
+				case "undoRedo":
+					if (data.state && !canvasState.isSyncing) {
+						canvasState.isSyncing = true; // Блокируем локальные изменения
+
+						const img = new Image();
+						img.onload = () => {
+							ctx.clearRect(0, 0, canvas.width, canvas.height);
+							ctx.drawImage(img, 0, 0);
+
+							// Обновляем историю, избегая дубликатов
+							if (data.action === "undo") {
+								// Удаляем состояние из undo стека, если оно там есть
+								canvasState.undoList = canvasState.undoList.filter(
+									(s) => s !== data.state
+								);
+								// Добавляем в redo стек (текущее состояние уже сохранено отправителем)
+								if (data.state) canvasState.pushToRedo(data.state);
+							} else {
+								// Удаляем состояние из redo стека
+								canvasState.redoList = canvasState.redoList.filter(
+									(s) => s !== data.state
+								);
+								// Возвращаем в undo стек
+								if (data.state) canvasState.pushToUndo(data.state);
+							}
+
+							canvasState.isSyncing = false; // Разблокируем
+						};
+						img.onerror = () => {
+							console.error("Error loading undo/redo image");
+							canvasState.isSyncing = false;
+						};
+						img.src = data.state;
+					}
+					break;
 			}
 		};
 

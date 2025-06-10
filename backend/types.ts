@@ -1,9 +1,13 @@
 export interface IWsData {
-	type: "figure" | "connect";
+	id: string;
+	type: "figure" | "connect" | 'undoRedo';
+	sessionId: string;
 	username?: string;
 	figure?: figure;
-	id: string;
+	state?: string; // Для передачи состояния canvas
+	action?: "undo" | "redo"; // Тип действия
 }
+
 export interface ICustomWebSocket extends WebSocket {
 	id: string;
 }

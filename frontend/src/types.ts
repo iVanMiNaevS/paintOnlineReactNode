@@ -52,11 +52,14 @@ export type IFigure =
 	| IFinishFigure;
 
 export interface IWsData {
-	type: "figure" | "connect";
+	type: "figure" | "connect" | 'undoRedo';
 	username?: string;
 	figure?: IFigure;
 	id: string;
+	state?: string; // Для передачи состояния canvas
+	action?: "undo" | "redo"; // Тип действия
 }
+
 
 export type typeTool = Brush | Circle | Rect | Eraser | Line;
 export type typeToolName = "brush" | "circle" | "line" | "eraser" | "rect";
